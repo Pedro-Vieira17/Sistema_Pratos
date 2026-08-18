@@ -41,7 +41,7 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
         <h1>CRUD - Restaurante</h1>
         <nav>
             <a href="public/usuarios.php">Gerenciar Usuários</a> | 
-            <a href="index.php">Ver Todos os Pratos</a>
+            <a href="public/pratos.php">Ver Todos os Pratos</a>
         </nav>
     </header>
 

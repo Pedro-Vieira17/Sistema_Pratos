@@ -14,5 +14,5 @@ CREATE TABLE prato (
     descricao VARCHAR(200) NOT NULL,
     preco DECIMAL(10, 2) NOT NULL,
     categoria VARCHAR(200) NOT NULL,
- FOREIGN KEY (id_usuario) REFERENCES usuario(id)
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id)
 );

@@ -2,11 +2,24 @@
 
 include "infra/conexao.php";
 
-$sql = "SELECT prato.*, usuario.nome AS usuario_nome
-        FROM prato
-        INNER JOIN usuario ON prato.id_usuario = usuario.id";
+$filtro_usuario = $_GET['usuario_id'] ?? null;
 
-$pratos = mysqli_query($conexao, $sql);
+if ($filtro_usuario) {
+    $stmt = $conexao->prepare("
+        SELECT prato.*, usuario.nome AS usuario_nome
+        FROM prato
+        INNER JOIN usuario ON prato.id_usuario = usuario.id
+        WHERE prato.id_usuario = ?
+    ");
+    $stmt->bind_param("i", $filtro_usuario);
+    $stmt->execute();
+    $pratos = $stmt->get_result();
+} else {
+    $sql = "SELECT prato.*, usuario.nome AS usuario_nome
+            FROM prato
+            INNER JOIN usuario ON prato.id_usuario = usuario.id";
+    $pratos = mysqli_query($conexao, $sql);
+}
 
 $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
@@ -19,22 +32,24 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD - Restaurante</title>
-    <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
 
     <header>
         <h1>CRUD - Restaurante</h1>
+        <nav>
+            <a href="public/usuarios.php">Gerenciar Usuários</a> | 
+            <a href="index.php">Ver Todos os Pratos</a>
+        </nav>
     </header>
 
     <main>
 
         <h2>Cadastrar Usuário</h2>
 
-        <form action="public/cadastrar.php" method="POST">
-
-            <input type="hidden" name="tipo" value="usuario">
+        <form action="public/usuario_cadastrar.php" method="POST">
 
             <label for="nome_usuario">Nome:</label>
             <input type="text" id="nome_usuario" name="nome" required>
@@ -50,12 +65,9 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
         </form>
 
-
         <h2>Adicionar um novo prato!</h2>
 
-        <form action="public/cadastrar.php" method="POST">
-
-            <input type="hidden" name="tipo" value="prato">
+        <form action="public/prato_cadastrar.php" method="POST">
 
             <label for="nome_prato">Nome do prato:</label>
             <input type="text" id="nome_prato" name="nome" required>
@@ -83,12 +95,13 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
                 <option value="">Selecione um usuário</option>
 
-                <?php while ($usuario = mysqli_fetch_assoc($usuarios)) { ?>
-
+                <?php 
+                mysqli_data_seek($usuarios, 0);
+                while ($usuario = mysqli_fetch_assoc($usuarios)) { 
+                ?>
                     <option value="<?php echo $usuario["id"]; ?>">
                         <?php echo $usuario["nome"]; ?>
                     </option>
-
                 <?php } ?>
 
             </select>
@@ -99,10 +112,32 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
         </form>
 
-
         <div>
 
-            <h2>Pratos Cadastrados</h2>
+            <h2>
+                Pratos Cadastrados
+                <?php if ($filtro_usuario): ?>
+                    (Filtrado por usuário) - <a href="index.php">Limpar filtro</a>
+                <?php endif; ?>
+            </h2>
+
+            <!-- Filtro por Usuário (RF6) -->
+            <form action="index.php" method="GET">
+                <label for="usuario_id">Filtrar por Usuário:</label>
+                <select name="usuario_id" id="usuario_id" onchange="this.form.submit()">
+                    <option value="">Todos os usuários</option>
+                    <?php 
+                    mysqli_data_seek($usuarios, 0);
+                    while ($u = mysqli_fetch_assoc($usuarios)) { 
+                    ?>
+                        <option value="<?php echo $u['id']; ?>" <?php echo ($filtro_usuario == $u['id']) ? 'selected' : ''; ?>>
+                            <?php echo $u['nome']; ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </form>
+
+            <br>
 
             <table>
 
@@ -120,40 +155,16 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
                     <tr>
 
-                        <td>
-                            <?php echo $prato["id"]; ?>
-                        </td>
+                        <td><?php echo $prato["id"]; ?></td>
+                        <td><?php echo $prato["nome"]; ?></td>
+                        <td><?php echo $prato["descricao"]; ?></td>
+                        <td>R$ <?php echo number_format($prato["preco"], 2, ',', '.'); ?></td>
+                        <td><?php echo $prato["categoria"]; ?></td>
+                        <td><?php echo $prato["usuario_nome"]; ?></td>
 
                         <td>
-                            <?php echo $prato["nome"]; ?>
-                        </td>
-
-                        <td>
-                            <?php echo $prato["descricao"]; ?>
-                        </td>
-
-                        <td>
-                            R$ <?php echo number_format($prato["preco"], 2, ',', '.'); ?>
-                        </td>
-
-                        <td>
-                            <?php echo $prato["categoria"]; ?>
-                        </td>
-
-                        <td>
-                            <?php echo $prato["usuario_nome"]; ?>
-                        </td>
-
-                        <td>
-
-                            <a href="public/editar.php?id=<?php echo $prato["id"]; ?>">
-                                Editar
-                            </a>
-
-                            <a href="public/excluir.php?id=<?php echo $prato["id"]; ?>">
-                                Excluir
-                            </a>
-
+                            <a href="public/prato_editar.php?id=<?php echo $prato["id"]; ?>">Editar</a>
+                            <a href="public/prato_excluir.php?id=<?php echo $prato["id"]; ?>" onclick="return confirm('Tem certeza que deseja excluir?')">Excluir</a>
                         </td>
 
                     </tr>

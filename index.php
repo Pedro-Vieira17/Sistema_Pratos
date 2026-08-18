@@ -38,7 +38,7 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 <body>
 
     <header>
-        <h1>CRUD - Restaurante</h1>
+        <center><h1>CRUD - Restaurante</h1></center>
         <nav>
             <a href="public/usuarios.php">Gerenciar Usuários</a> | 
             <a href="index.php">Ver Todos os Pratos</a>
@@ -65,7 +65,7 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
         </form>
 
-        <h2>Adicionar um novo prato!</h2>
+        <center><h2>Adicionar um novo prato!</h2></center>
 
         <form action="public/prato_cadastrar.php" method="POST">
 
@@ -114,12 +114,12 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuario");
 
         <div>
 
-            <h2>
+            <center><h2>
                 Pratos Cadastrados
                 <?php if ($filtro_usuario): ?>
                     (Filtrado por usuário) - <a href="index.php">Limpar filtro</a>
                 <?php endif; ?>
-            </h2>
+            </h2></center>
 
             <!-- Filtro por Usuário (RF6) -->
             <form action="index.php" method="GET">
